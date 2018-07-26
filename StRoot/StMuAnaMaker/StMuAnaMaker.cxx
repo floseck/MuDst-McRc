@@ -29,8 +29,12 @@ Int_t StMuAnaMaker::Init()
     mFileName = "muAna.root";
 
     mVxVy = new TH2F( "VxVy", "", 250, -5., 5., 250, -5., 5. );
-    mVz   = new TH1F( "Vz", "",500, -10., 10. );
+    mVz   = new TH1F( "Vz", "",500, -10., 10. ); 
     
+    mPtCorr  = new TH2F( "PtCorr",  "", 200, 0., 10., 250, -5., 5. );
+    mPzCorr  = new TH2F( "PzCorr",  "", 200, 0., 10., 250, -5., 5. );
+    mMomCorr = new TH2F( "MomCorr", "", 200, 0., 10., 250, -5., 5. );
+
     return StMaker::Init();
 }
 
@@ -45,8 +49,12 @@ Int_t StMuAnaMaker::Finish()
     mFile =  new TFile( mFileName.c_str(), "RECREATE" );
     cout << "\tHistograms will be stored in file '" <<  mFileName.c_str() << "'" << endl;
 
-    mVxVy->Write();
-    mVz  ->Write();
+    mVxVy  ->Write();
+    mVz    ->Write();
+
+    mPtCorr ->Write();
+    mPzCorr ->Write();
+    mMomCorr->Write();
 
     //  Write histos to file and close it.
     if( mFile ) {
@@ -118,6 +126,8 @@ Int_t StMuAnaMaker::Make()
     //mGlobalPt->Fill( muTrack->pt() );
     const StThreeVectorF mom = muTrack->momentum();
     const float pt  = mom.perp();
+    const float pz  = fabs( mom.z() );
+    const float p   = mom.mag();
     const float eta = mom.pseudoRapidity();
 
     if( pt<0.2 || fabs( eta )>1.6 ) { 
@@ -127,11 +137,11 @@ Int_t StMuAnaMaker::Make()
 
     int idTruth = muTrack->idTruth();
     
-    cout << "track: " << l << "  with idTruth: " << idTruth << endl;
+    if( fabs( eta ) > 1.0 ) cout << "track: " << l << "  with idTruth: " << idTruth << endl;
 
     if( idTruth < 0 ) continue;
 
-    if( idTruth>10000 ) { // reconstructed tracks
+    if( idTruth > 10000 ) { // reconstructed tracks
       //mRcTPCPtEta->Fill(pt, eta);
     }
     else {
@@ -139,8 +149,15 @@ Int_t StMuAnaMaker::Make()
       if( index2Mc >= 0 ) {
         StMuMcTrack *mcT = ( StMuMcTrack* ) mcTracks->UncheckedAt( index2Mc );
         if( mcT ) {
-            float pt_mc = mcT->pT();
-            //PtCorr->Fill(pt_mc, pt-pt_mc);
+            //const StThreeVectorF mom_mc = mcT->Pxyz();
+            const float pt_mc = mcT->pT();
+            const float pz_mc = fabs( mcT->Pxyz().z() );
+            const float p_mc  = mcT->Ptot();
+            if( fabs( eta ) > 1.0 ) {
+                mPtCorr ->Fill( pt_mc, pt - pt_mc );
+                mPzCorr ->Fill( pz_mc, pz - pz_mc );
+                mMomCorr->Fill( p_mc,  p  - p_mc  );
+            }
             //mMcTPCPtEta->Fill(pt, eta);
         }
       } // end if (index2Mc)

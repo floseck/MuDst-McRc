@@ -32,6 +32,9 @@ private:
 
     TH2F* mVxVy;
     TH1F* mVz;
+    TH2F* mPtCorr;
+    TH2F* mPzCorr;
+    TH2F* mMomCorr;
 
     bool accept( StMuTrack* );            
 

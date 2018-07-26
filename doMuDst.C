@@ -3,7 +3,7 @@ class StChain;
 class StMuDstMaker;
 
 
-void doMuDst( const Char_t *inputFileList = "test.list", int nEvents = 100 )
+void doMuDst( const Char_t *inputFileList = "test.list", int nEvents = 10000 )
 {
   gROOT  ->Macro( "loadMuDst.C" );
   gSystem->Load( "StMuAnaMaker" );
