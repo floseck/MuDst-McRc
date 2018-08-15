@@ -35,6 +35,9 @@ Int_t StMuAnaMaker::Init()
     mPzCorr  = new TH2F( "PzCorr",  "", 200, 0., 10., 250, -5., 5. );
     mMomCorr = new TH2F( "MomCorr", "", 200, 0., 10., 250, -5., 5. );
 
+    mMcEtaPhi = new TH2F( "McEtaPhi", "", 400, 0., 2 * M_PI, 400, -1.7, 1.7 );
+	mRcEtaPhi = new TH2F( "RcEtaPhi", "", 400, 0., 2 * M_PI, 400, -1.7, 1.7 );
+
     return StMaker::Init();
 }
 
@@ -55,6 +58,9 @@ Int_t StMuAnaMaker::Finish()
     mPtCorr ->Write();
     mPzCorr ->Write();
     mMomCorr->Write();
+
+    mMcEtaPhi->Write();
+    mRcEtaPhi->Write();
 
     //  Write histos to file and close it.
     if( mFile ) {
@@ -104,7 +110,15 @@ Int_t StMuAnaMaker::Make()
     //if(gId!=8) continue; // not a pion
     int idVtx = mcT->IdVx();
     //if(idVtx!=1) continue;  // not from primary vertex
+
+    cout << "mc track id: " << id << " with geant id: " << gId << endl;
     
+    float mcEta = mcT->Pxyz().pseudoRapidity();
+    float mcPhi = mcT->Pxyz().phi();
+    if( mcPhi < 0. ) mcPhi += 2 * M_PI;
+
+    mMcEtaPhi->Fill( mcPhi, mcEta );
+
     index2McTrack[ id ] = i;      
   }
 
@@ -129,6 +143,13 @@ Int_t StMuAnaMaker::Make()
     const float pz  = fabs( mom.z() );
     const float p   = mom.mag();
     const float eta = mom.pseudoRapidity();
+
+    float phi = mom.phi();
+    if( phi < 0. ) phi += 2 * M_PI;
+
+	mRcEtaPhi->Fill( phi, eta );
+
+
 
     if( pt<0.2 || fabs( eta )>1.6 ) { 
       //cout << "track: " << l << " not accepted (pt or eta) " << endl;

@@ -36,6 +36,9 @@ private:
     TH2F* mPzCorr;
     TH2F* mMomCorr;
 
+    TH2F* mMcEtaPhi;
+	TH2F* mRcEtaPhi;
+
     bool accept( StMuTrack* );            
 
     ClassDef( StMuAnaMaker, 1 )
